@@ -1,0 +1,8 @@
+<thetuftsdaily>
+	<column>
+	<thumbnail>{col-thumbnail}</thumbnail>
+	<colhead>{headline}</colhead>
+	<body>{body}</body>
+	<bio>{bio}</bio>
+	</column>
+</thetuftsdaily>

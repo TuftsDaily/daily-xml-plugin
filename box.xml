@@ -1,0 +1,11 @@
+<thetuftsdaily>
+	<boxhead>{headline}</boxhead>
+	<author><boxcontrib>—by {author}</boxcontrib></author>
+	<jump>see {jumpword}, page xx</jump>
+	<continuation><contjump>{jumpword}</contjump>
+<contpage>continued from page xx</contpage></continuation>
+	<photo><photocredit>{photocredit}</photocredit>
+<photocaption>{photocaption}</photocaption></photo>
+	<thumbnail>{thumbnail}</thumbnail>
+	<boxtext>{body}</boxtext>
+</thetuftsdaily>

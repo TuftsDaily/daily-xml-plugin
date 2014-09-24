@@ -1,0 +1,7 @@
+<thetuftsdaily>
+	<opinion>{headline}</opinion>
+	<byview>by {author}</byview>
+	<bio>{bio}</bio>
+	<thumbnail>{thumbnail}</thumbnail>
+	<body>{body}</body>
+</thetuftsdaily>
