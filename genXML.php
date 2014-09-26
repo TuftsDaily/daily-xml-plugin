@@ -73,6 +73,7 @@ if (!$sectionName) { $sectionName = "daily"; }
 
 // Post Body
 $body = $post->post_content;
+$body = "\t" . $body;
 $body = str_replace("\r\n\r\n", "\r\n\t", $body); // Replace Double-Newline
 $body = str_replace("&nbsp;", " ", $body); // Strip &nbsp;
 $body = strip_tags($body, '<strong><em>'); // And Strip Out HTML
