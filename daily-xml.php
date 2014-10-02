@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Tufts Daily Export to InDesign
-Plugin URI: https://github.com/DirtySuds/Export-to-InDesign
+Plugin URI: https://github.com/TuftsDaily/daily-xml-plugin
 Description: Export a post as XML for import to InDesign
 Author: Andrew Stephens
 Author URI: http://andrewmediaprod.com/
