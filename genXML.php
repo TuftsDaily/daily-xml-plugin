@@ -73,10 +73,11 @@ if (!$sectionName) { $sectionName = "daily"; }
 
 // Post Body
 $body = $post->post_content;
-$body = "\t" . $body;
+$body = "\t" . $body; // Add a leading indent for first paragraph
 $body = str_replace("\r\n\r\n", "\r\n\t", $body); // Replace Double-Newline
 $body = str_replace("&nbsp;", " ", $body); // Strip &nbsp;
 $body = strip_tags($body, '<strong><em>'); // And Strip Out HTML
+$body = wptexturize($body); // Fix quotations and other encoding
 $tagValues['body'] = $body;
 
 // Determine the Proper XML Template
