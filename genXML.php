@@ -19,21 +19,36 @@ $tagValues['headline'] = $post->post_title;
 
 // Author
 $author_data = get_userdata($post->post_author);
+$author_data = wptexturize($author_data); // Fix quotations and other encoding
 $tagValues['author'] = $author_data->display_name;
 $tagValues['rank'] = tdaily_get_author_rank($author_data);
 $tagValues['bio'] = $author_data->description;
 
 // Jump/Continuation
-$tagValues['jumpword'] = strtoupper(get_editorial_metadata('jumpword', 'text'));
-$tagValues["conthead"] = get_editorial_metadata('cont-head', 'text');
-$tagValues["subtitle"] = get_editorial_metadata('subtitle', 'text');
+$jumpword = strtoupper(get_editorial_metadata('jumpword', 'text'));
+$jumpword = wptexturize($jumpword);
+$tagValues['jumpword'] = $jumpword;
+
+$conthead = get_editorial_metadata('cont-head', 'text');
+$conthead = wptexturize($conthead);
+$tagValues["conthead"] = $conthead;
+
+$subtitle = get_editorial_metadata('subtitle', 'text');
+$subtitle = wptexturize($subtitle);
+$tagValues["subtitle"] = $subtitle;
 
 // Photo Caption/Credit from Featured Image, if Exists
 $thumbnail_id    = get_post_thumbnail_id($post->ID);
 if ($thumbnail_id) {
 	$thumbnail_image = get_post($thumbnail_id);
-	$tagValues["photocaption"] = $thumbnail_image->post_content;
-	$tagValues["photocredit"] = $thumbnail_image->post_excerpt;
+    //photocaption
+    $photocaption = $thumbnail_image->post_content;
+    $photocaption = wptexturize($photocaption);
+	$tagValues["photocaption"] = $photocaption;
+    //photocredit
+    $photocredit = $thumbnail_image->post_excerpt;
+    $photocredit = wptexturize($photocredit);
+	$tagValues["photocredit"] = $photocredit;
 }
 
 // Column Thumbnail
@@ -48,7 +63,6 @@ foreach(wp_get_post_categories($post->ID) as $catId) {
 	if ($grandparentId == COLUMNS_CATEGORY_ID) {
 		$colThumb_title = $cat->cat_name;
 	}
-
 }
 $tagValues['col-thumbnail'] = $colThumb_author.' | '.$colThumb_title; 
 
@@ -61,6 +75,7 @@ foreach(wp_get_post_categories($post->ID) as $catId) {
 	// If Child
 	if ($cat->category_parent != 0) {
 		$thumbName = $cat->cat_name;
+        $thumbName = wptexturize($thumbName);
 		$sectionName = get_ancestor_cat_name($catId);
 	} else {
 		$sectionName = $cat->slug;
