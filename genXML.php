@@ -18,12 +18,17 @@ $tagValues = array();
 $tagValues['headline'] = $post->post_title;
 
 // Author
-$author_data = get_userdata($post->post_author);
-$author_data = wptexturize($author_data); // Fix quotations and other encoding
-$tagValues['author'] = $author_data->display_name;
-$tagValues['rank'] = tdaily_get_author_rank($author_data);
-$tagValues['bio'] = $author_data->description;
-
+if (get_editorial_metadata('off-the-hill', 'checkbox')) { 
+	$tagValues['author'] = get_editorial_metadata('off-the-hill-author', 'text');
+	$tagValues['rank'] = get_editorial_metadata('off-the-hill-university', 'text');
+}
+else {
+	$author_data = get_userdata($post->post_author);
+	$author_data = wptexturize($author_data); // Fix quotations and other encoding
+	$tagValues['author'] = $author_data->display_name;
+	$tagValues['rank'] = tdaily_get_author_rank($author_data);
+	$tagValues['bio'] = $author_data->description;
+}
 // Jump/Continuation
 $jumpword = strtoupper(get_editorial_metadata('jumpword', 'text'));
 $jumpword = wptexturize($jumpword);
@@ -67,20 +72,23 @@ foreach(wp_get_post_categories($post->ID) as $catId) {
 $tagValues['col-thumbnail'] = $colThumb_author.' | '.$colThumb_title; 
 
 // Section Name for Thumbnail
-$thumbName = '';
+$thumbName = get_editorial_metadata('thumbnail', 'text');
 $sectionName = '';
 foreach(wp_get_post_categories($post->ID) as $catId) {
 	$cat = get_category($catId);
 	
 	// If Child
 	if ($cat->category_parent != 0) {
-		$thumbName = $cat->cat_name;
-        $thumbName = wptexturize($thumbName);
+		if ($thumbName == '') {
+			$thumbName = $cat->cat_name;
+        		$thumbName = wptexturize($thumbName);
+		}
 		$sectionName = get_ancestor_cat_name($catId);
 	} else {
 		$sectionName = $cat->slug;
 	}
 }
+
 $tagValues['thumbnail'] = $thumbName;
 
 // Default Filename Value if Section Name Not Found
@@ -100,6 +108,7 @@ $template = 'standard.xml';
 if (in_array(COLUMNS_CATEGORY_ID, wp_get_post_categories($post->ID))) { $template = 'column.xml'; }
 if (in_array(OPINION_CATEGORY_ID, wp_get_post_categories($post->ID))) { $template = 'oped.xml'; }
 if (get_editorial_metadata('is-box', 'checkbox')) { $template = 'box.xml'; }
+if (get_editorial_metadata('off-the-hill', 'checkbox')) { $template = 'off-the-hill.xml'; }
 
 // Now Actually Load It
 $xmlString = file_get_contents($template, true);
