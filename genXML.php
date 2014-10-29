@@ -108,7 +108,10 @@ $template = 'standard.xml';
 if (in_array(COLUMNS_CATEGORY_ID, wp_get_post_categories($post->ID))) { $template = 'column.xml'; }
 if (in_array(OPINION_CATEGORY_ID, wp_get_post_categories($post->ID))) { $template = 'oped.xml'; }
 if (get_editorial_metadata('is-box', 'checkbox')) { $template = 'box.xml'; }
-if (get_editorial_metadata('off-the-hill', 'checkbox')) { $template = 'off-the-hill.xml'; }
+if (get_editorial_metadata('off-the-hill', 'checkbox')) { 
+	$template = 'off-the-hill.xml';
+	$sectionName = 'off-the-hill'; //for filename
+ }
 
 // Now Actually Load It
 $xmlString = file_get_contents($template, true);
