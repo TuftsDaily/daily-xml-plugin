@@ -24,7 +24,6 @@ if (get_editorial_metadata('off-the-hill', 'checkbox')) {
 }
 else {
 	$author_data = get_userdata($post->post_author);
-	$author_data = wptexturize($author_data); // Fix quotations and other encoding
 	$tagValues['author'] = $author_data->display_name;
 	$tagValues['rank'] = tdaily_get_author_rank($author_data);
 	$tagValues['bio'] = $author_data->description;
