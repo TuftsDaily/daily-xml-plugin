@@ -2,8 +2,7 @@
 	<opinion>
 		<thumbnail>{thumbnail}</thumbnail>
 		<opinionhead>{headline}</opinionhead>
-		<author><byline>by {author}</byline>
-		<rank>{rank}</rank></author>
+		<author><byline>by {author}</byline><rank>{rank}</rank></author>
 		<body>{body}</body>
 	</opinion>
 </thetuftsdaily>
