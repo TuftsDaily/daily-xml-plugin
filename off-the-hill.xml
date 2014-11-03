@@ -5,5 +5,5 @@
 		<author><byline>by {author}</byline>
 		<rank>{rank}</rank></author>
 		<body>{body}</body>
-	<opinion>
+	</opinion>
 </thetuftsdaily>
