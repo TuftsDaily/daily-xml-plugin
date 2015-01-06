@@ -1,7 +1,7 @@
 <?php
 
-define('TDAILY_XML_DEBUG', true);
-define('COLUMNS_CATEGORY_ID', 21); // 21 local, 231 production
+define('TDAILY_XML_DEBUG', false);
+define('COLUMNS_CATEGORY_ID', 231); // 21 local, 231 production
 define('OPINION_CATEGORY_ID', 24); // 24 local, 24 production
 
 // Get Rid of Any Existing Output by WordPress
