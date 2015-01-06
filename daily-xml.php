@@ -5,7 +5,7 @@ Plugin URI: https://github.com/TuftsDaily/daily-xml-plugin
 Description: Export a post as XML for import to InDesign
 Author: Andrew Stephens
 Author URI: http://andrewmediaprod.com/
-Version: 2.0
+Version: 3.0
 */
 
 /* Adds a box to the main column on the Post and Page edit screens */
@@ -30,7 +30,7 @@ function tdaily_export_html_box_inner($post, $metabox) {
 add_action('single_template', 'tdaily_export_html');
 function tdaily_export_html($single_template) {
 	if (isSet($_GET['InDesign']) && $_GET['InDesign'] == 'download') {
-		return dirname( __FILE__ ) .'/genXML.php';
+		return dirname( __FILE__ ) .'/xml-gen.php';
 	} else {
 		return $single_template;
 	}

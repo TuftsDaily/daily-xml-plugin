@@ -1,0 +1,320 @@
+<?php
+
+class XMLGen {
+
+	private $COLUMNS_CATEGORY_ID;
+	private $OPINION_CATEGORY_ID;
+	private $DEBUG = false;
+
+	private $catArray;
+	private $tags;
+	private $filenameData;
+	private $templateFile;
+
+	public function __construct() {
+
+		// Get Rid of Any Existing Output by WordPress
+		ob_end_clean();
+
+		// Set Debug Var
+		if ($_SERVER['REMOTE_ADDR'] == "127.0.0.1") {
+			$this->DEBUG = true;
+		}
+
+		// Save as Class Variable for Shorthand Later
+		the_post();
+
+		// Set Category ID Values
+		$this->COLUMNS_CATEGORY_ID = get_cat_ID("Columns");
+		$this->OPINION_CATEGORY_ID = get_cat_ID("Opinion");
+		$this->build_cat_array();
+
+		// Get Tag Data
+		$this->tags = array();
+		$this->set_title();
+		$this->set_author();
+		$this->set_pagination();
+		$this->set_thumbnail();
+		$this->set_photos();
+		$this->set_body();
+
+		// Prepare for Output
+		$this->set_template();
+
+	}
+
+	public function output() {
+
+		// Now Actually Load It
+		$xmlString = file_get_contents($this->templateFile, true);
+
+		// Find and Replace Text Accordingly
+		foreach($this->tags as $keyword=>$value) {
+			$xmlString = str_replace('{'.$keyword.'}', $value, $xmlString);
+		}
+		// Remove Any Unused Template Tags
+		$xmlString = preg_replace("/\{.*\}/", "", $xmlString);
+
+
+		// Make a Filename Out of the Title
+		$filename = implode('-', $this->filenameData).'.xml';
+		if (!$this->DEBUG) {
+			// Force Download
+			header('Content-type: binary/text; charset=utf-8');
+			header('Content-Disposition: filename='.$filename);
+		} else {
+			var_dump($filename);
+		}
+
+		echo $xmlString;
+
+		exit();
+
+	}
+
+	private function set_title() {
+		global $post;
+
+		$this->tags['headline'] = $post->post_title;
+
+	}
+
+	private function set_author() {
+		global $post;
+
+		// Off-the-Hill Articles Store Author in Editorial Metadata
+		if ($this->get_editorial_metadata('off-the-hill', 'checkbox', false)) { 
+			$this->tags['author'] = $this->get_editorial_metadata('off-the-hill-author', 'text');
+			$this->tags['rank'] = $this->get_editorial_metadata('off-the-hill-university', 'text');
+		
+		// Otherwise, Stored in Post Data
+		} else {
+			$author_data = get_userdata($post->post_author);
+			$this->tags['author'] = $author_data->display_name;
+			$this->tags['rank'] = $this->get_author_rank($author_data->description);
+			$this->tags['bio'] = $author_data->description;
+		}
+
+	}
+
+	/**
+	 * Given an author's bio, returns that author's rank.
+	 * 
+	 * Based on the three ranks given to Daily writers.
+	 * Others could be added in the future using the same method.
+	 * Returns placeholder text if the author does not have a bio.
+	 * 
+	 * @return string Author's rank text.
+	 */
+	private function get_author_rank($bio) {
+
+		if (strpos(strtoupper($bio), "STAFF WRITER")) {
+			$rank = "Staff Writer";
+		} else if (strpos(strtoupper($bio), "CONTRIBUTING WRITER")) {
+			$rank = "Contributing Writer";
+		} else if (strpos(strtoupper($bio), "EDITOR")) {
+			$rank = "Daily Editorial Board";
+		} else {
+			$rank = "INSERT RANK HERE";
+		}
+		return $rank;
+
+	}
+
+	private function set_pagination() {
+
+		// All Three Pagination Controls are Custom Data Stored in Metadata
+		$jumpword = strtoupper($this->get_editorial_metadata('jumpword', 'text'));
+		$conthead = $this->get_editorial_metadata('cont-head', 'text');
+		$subtitle = $this->get_editorial_metadata('subtitle', 'text');
+
+		// Fill In Defaults For Required Fields
+		if (!$jumpword) { $jumpword = 'JUMPWORD'; }
+		if (!$conthead) { $conthead = 'CONTINUATION HEADLINE GOES HERE'; }
+
+		$this->tags['jumpword'] = $jumpword;
+		$this->tags['conthead'] = $conthead;
+		$this->tags['subtitle'] = $subtitle;
+
+	}
+
+	private function set_thumbnail() {
+
+		// First, Allow Custom Overrides
+		$custom = $this->get_editorial_metadata('thumbnail', 'text');
+		if ($custom != '') {
+			$this->tags['thumbnail'] = $custom;
+		}
+
+		// If It's a Column, Save the Column Title
+		if ($this->has_category($this->COLUMNS_CATEGORY_ID)) {
+			$this->tags['col-title'] = $this->get_cat_name_at_lvl(2);
+		}
+
+		// Otherwise, Get Level 2 Category
+		$lvl2cat = $this->get_cat_name_at_lvl(1);
+		$this->tags['thumbnail'] = wptexturize($lvl2cat);
+
+	}
+
+	private function set_photos() {
+		global $post;
+
+		$thumbnail_id    = get_post_thumbnail_id($post->ID);
+		if ($thumbnail_id) {
+			$thumbnail_image = get_post($thumbnail_id);
+			//photocaption
+			$photocaption = $thumbnail_image->post_content;
+			$photocaption = wptexturize($photocaption);
+			$this->tags["photocaption"] = $photocaption;
+			//photocredit
+			$photocredit = $thumbnail_image->post_excerpt;
+			$photocredit = wptexturize($photocredit);
+			$this->tags["photocredit"] = $photocredit;
+		}
+
+	}
+
+	private function set_body() {
+		global $post;
+
+		$body = $post->post_content;
+		$body = "\t" . $body; // Add a leading indent for first paragraph
+		$body = str_replace("\r\n\r\n", "\r\n\t", $body); // Replace Double-Newline
+		$body = str_replace("&nbsp;", " ", $body); // Strip &nbsp;
+		$body = strip_tags($body, '<strong><em>'); // And Strip Out HTML
+		$body = wptexturize($body); // Fix quotations and other encoding
+		$this->tags['body'] = $body;
+
+	}
+
+	private function set_template() {
+		global $post;
+
+		$this->filenameData = array();
+
+		$this->filenameData[] = $this->get_cat_name_at_lvl(0);
+		$sectionSubcat = $this->get_cat_name_at_lvl(1);
+		if ($sectionSubcat) {
+			$this->filenameData[] = $sectionSubcat;
+		}
+
+		$this->templateFile = 'standard.xml';
+		if ($this->has_category($this->COLUMNS_CATEGORY_ID)) { 
+			$this->templateFile = 'column.xml'; 
+		} else if ($this->has_category($this->OPINION_CATEGORY_ID)) { 
+			$this->templateFile = 'oped.xml'; 
+		} else if ($this->get_editorial_metadata('is-box', 'checkbox', false)) { 
+			$this->templateFile = 'box.xml'; 
+		} else if ($this->get_editorial_metadata('off-the-hill', 'checkbox', false)) { 
+			$this->templateFile = 'off-the-hill.xml';
+			$this->filenameData = array('opinion', 'off the hill');
+		}
+
+		$this->filenameData[] = $post->post_title;
+		$this->filenameData[] = $post->ID;
+
+		$stripNonAlphaNum = function($el) {
+			return str_replace(' ', '-', strtolower(preg_replace("/[^A-Za-z0-9 ]/", '', $el)));
+		};
+		$this->filenameData = array_map($stripNonAlphaNum, $this->filenameData);
+
+		$stripEmptyStr = function($el) {
+			return $el != '';
+		};
+		$this->filenameData = array_filter($this->filenameData, $stripEmptyStr);
+
+	}
+
+	private function get_editorial_metadata($slug, $type, $texturize=true) {
+		global $post, $edit_flow;
+
+		$postmeta_key = "_ef_editorial_meta_{$type}_$slug";
+
+		$view = get_metadata( 'post', $post->ID, '', true );
+		$show_editorial_metadata = $view["{$postmeta_key}"][0];
+
+		if ($type == "date") { $show_editorial_metadata = date("F j, Y", $show_editorial_metadata); }
+
+		if ($texturize) {
+			return wptexturize($show_editorial_metadata);
+		} else {
+			return $show_editorial_metadata;
+		}
+	}
+
+	/*function get_ancestor_cat_name($id) {
+		$cat = get_category($id);
+		if ($cat->category_parent == 0) {
+			return $cat->slug;
+		} else {
+			return $this->get_ancestor_cat_name($cat->category_parent);
+		}
+	}
+
+	function get_lvl2_cat_name() {
+
+		// A Level-2 Category Has a Parent, but its Parent Doesn't
+
+		foreach(wp_get_post_categories($post->ID) as $catId) {
+
+			// If The Current Category ID Matches that Criteria, Get the Name
+			$cat = get_category($id);
+			if ($cat->category_parent != 0) {
+				$parent = get_category($cat->category_parent);
+				if ($parent->category_parent == 0) {
+					return $cat->cat_name;
+				}
+			}
+
+		}
+
+		// If The Above Isn't True, There Is No Level-2 Category
+		return false;
+
+	}*/
+
+	private function has_category($checkCatId) {
+		global $post;
+
+		$cats = wp_get_post_categories($post->ID);
+		return in_array($checkCatId, $cats);
+
+	}
+
+	private function build_cat_array() {
+		global $post;
+
+		foreach(wp_get_post_categories($post->ID) as $catId) {
+
+			$cat = get_category($catId);
+			$lvl = $this->get_cat_lvl($catId);
+			if (!isSet($this->catArray[$lvl])) {
+				$this->catArray[$lvl] = array();
+			}
+			$this->catArray[$lvl][] = $cat;
+
+		}
+
+	}
+
+	private function get_cat_lvl($catId, $count=0) {
+		global $post;
+
+		$c = get_category($catId);
+		if ($c->category_parent == 0) {
+			return $count;
+		} else {
+			return $this->get_cat_lvl($c->category_parent, $count+1);
+		}
+
+	}
+
+	private function get_cat_name_at_lvl($lvl) {
+		return $this->catArray[$lvl][0]->name;
+	}
+	
+}
+
+$tdaily_xml = new XMLGen();
+$tdaily_xml->output();
