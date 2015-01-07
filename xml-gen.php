@@ -16,8 +16,8 @@ class XMLGen {
 		// Get Rid of Any Existing Output by WordPress
 		ob_end_clean();
 
-		// Set Debug Var
-		if ($_SERVER['REMOTE_ADDR'] == "127.0.0.1") {
+		// Set Debug Var for Local Env Only
+		if ($_SERVER['SERVER_NAME'] != "tuftsdaily.com") {
 			$this->DEBUG = true;
 		}
 
@@ -243,37 +243,6 @@ class XMLGen {
 		}
 	}
 
-	/*function get_ancestor_cat_name($id) {
-		$cat = get_category($id);
-		if ($cat->category_parent == 0) {
-			return $cat->slug;
-		} else {
-			return $this->get_ancestor_cat_name($cat->category_parent);
-		}
-	}
-
-	function get_lvl2_cat_name() {
-
-		// A Level-2 Category Has a Parent, but its Parent Doesn't
-
-		foreach(wp_get_post_categories($post->ID) as $catId) {
-
-			// If The Current Category ID Matches that Criteria, Get the Name
-			$cat = get_category($id);
-			if ($cat->category_parent != 0) {
-				$parent = get_category($cat->category_parent);
-				if ($parent->category_parent == 0) {
-					return $cat->cat_name;
-				}
-			}
-
-		}
-
-		// If The Above Isn't True, There Is No Level-2 Category
-		return false;
-
-	}*/
-
 	private function has_category($checkCatId) {
 		global $post;
 
@@ -298,6 +267,13 @@ class XMLGen {
 
 	}
 
+	/**
+	 * Determines a category's depth position in a hierarchy.
+	 *
+	 * @param  integer Category ID being queried.
+	 * @param  integer Level counter, used internally for recursion.
+	 * @return integer Depth level of queried hierarchy. 
+	 */
 	private function get_cat_lvl($catId, $count=0) {
 		global $post;
 
@@ -310,8 +286,19 @@ class XMLGen {
 
 	}
 
-	private function get_cat_name_at_lvl($lvl) {
-		return $this->catArray[$lvl][0]->name;
+	/**
+	 * Get category name at a given level.
+	 *
+	 * Given an hierarchical array of categories, get the category name at the
+	 * specified level. If there are multiple categories at the level, default
+	 * to the first entry.
+	 * 
+	 * @param  integer Level number of desired category, zero-indexed.
+	 * @param  integer Which category to return, if specificity is needed.
+	 * @return string Name of category that matches given criteria.
+	 */
+	private function get_cat_name_at_lvl($lvl, $which=0) {
+		return $this->catArray[$lvl][$which]->name;
 	}
 	
 }
