@@ -89,11 +89,51 @@ class XMLGen {
 		
 		// Otherwise, Stored in Post Data
 		} else {
-			$author_data = get_userdata($post->post_author);
-			$this->tags['author'] = $author_data->display_name;
-			$this->tags['rank'] = $this->get_author_rank($author_data->description);
-			$this->tags['bio'] = $author_data->description;
+
+			// Get Using Co-Authors Plus Plugin Functions
+			if (function_exists('coauthors')) {
+
+				$shared_rank = null;
+				$shared_bio = '';
+
+				// Co-Atuhors Plus Plugin Provides Author List Formatted
+				$this->tags['author'] = coauthors(null, null, null, null, false);
+
+				foreach (get_coauthors() as $author_data) {
+
+					// Ranks Must Match, or Be Edited Manually
+					$rank = $this->get_author_rank($author_data->description);
+					
+					// If Null, This is First Author so Set Rank from That
+					if ($shared_rank == null) {
+						$shared_rank = $rank;
+
+					// If Current Author's Rank Doesn't Match Previous, Set to Placeholder
+					} else if ($shared_rank != $rank) {
+						$rank = "INSERT RANK HERE";
+					}
+
+					// Merge Bios Together
+					// With a Space In-Between if Necessary
+					if ($shared_bio != '') { $shared_bio .= ' '; }
+					$shared_bio .= $author_data->description;	
+				}
+
+				// Set Tags Accordingly
+				$this->tags['rank'] = $shared_rank;
+				$this->tags['bio'] = $shared_bio;
+
+			// Otherwise, Use Built-In WP Functions
+			} else {
+				$author_data = get_userdata($post->post_author);
+				$this->tags['author'] = $author_data->display_name;
+				$this->tags['rank'] = $this->get_author_rank($author_data->description);
+				$this->tags['bio'] = $author_data->description;
+			}
+			
 		}
+
+		//var_dump(get_coauthors());
 
 	}
 
@@ -193,12 +233,15 @@ class XMLGen {
 
 		$this->filenameData = array();
 
+		// Filename Has First Two Levels of Categories, if Exist
 		$this->filenameData[] = $this->get_cat_name_at_lvl(0);
 		$sectionSubcat = $this->get_cat_name_at_lvl(1);
 		if ($sectionSubcat) {
 			$this->filenameData[] = $sectionSubcat;
 		}
 
+		// Use Standard XML Template by Default
+		// Then Override in Specific Situations
 		$this->templateFile = 'standard.xml';
 		if ($this->has_category($this->COLUMNS_CATEGORY_ID)) { 
 			$this->templateFile = 'column.xml'; 
@@ -211,9 +254,11 @@ class XMLGen {
 			$this->filenameData = array('opinion', 'off the hill');
 		}
 
+		// Put Title and ID in Filename Too
 		$this->filenameData[] = $post->post_title;
 		$this->filenameData[] = $post->ID;
 
+		// Filter Data in Filename to Prevent Download Erors
 		$stripNonAlphaNum = function($el) {
 			return str_replace(' ', '-', strtolower(preg_replace("/[^A-Za-z0-9 ]/", '', $el)));
 		};
