@@ -195,6 +195,11 @@ class XMLGen {
 		$lvl2cat = $this->get_cat_name_at_lvl(1);
 		$this->tags['thumbnail'] = wptexturize($lvl2cat);
 
+		// Special Case for Opinion Articles: Should Have Thumbnail "Op-Ed"
+		if ($this->has_category($this->OPINION_CATEGORY_ID) && $this->tags['thumbnail'] == '') {
+			$this->tags['thumbnail'] = "Op-Ed";
+		}
+
 	}
 
 	private function set_photos() {
