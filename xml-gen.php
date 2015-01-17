@@ -133,31 +133,40 @@ class XMLGen {
 			
 		}
 
-		//var_dump(get_coauthors());
-
 	}
 
 	/**
 	 * Given an author's bio, returns that author's rank.
 	 * 
-	 * Based on the three ranks given to Daily writers.
-	 * Others could be added in the future using the same method.
-	 * Returns placeholder text if the author does not have a bio.
+	 * Based on a standardized bio format of:
+	 * John Smith is a ____ at the Tufts Daily.
+	 * Returns placeholder text if the author does not have a bio
+	 *   or the bio does not follow this format.
 	 * 
 	 * @return string Author's rank text.
 	 */
 	private function get_author_rank($bio) {
 
-		if (strpos(strtoupper($bio), "STAFF WRITER")) {
-			$rank = "Staff Writer";
-		} else if (strpos(strtoupper($bio), "CONTRIBUTING WRITER")) {
-			$rank = "Contributing Writer";
-		} else if (strpos(strtoupper($bio), "EDITOR")) {
-			$rank = "Daily Editorial Board";
-		} else {
-			$rank = "INSERT RANK HERE";
+		// Get Position of Rank Phrase
+		$bio_rank_start = strpos(strtoupper($bio), "IS A ");
+		$bio_offset = 5;
+		// Account for Alternative Indefinite Article
+		if ($bio_rank_start == false) { 
+			$bio_rank_start = strpos(strtoupper($bio), "IS AN "); 
+			$bio_offset = 6;
 		}
-		return $rank;
+		$bio_rank_end = strpos(strtoupper($bio), "AT THE TUFTS DAILY");
+
+		// If Cannot Find the Correct Phrase, Give Up
+		if ($bio_rank_start == false || $bio_rank_end == false) {
+			return "INSERT RANK HERE";
+		}
+
+		// We Don't Want the "is a" Phrase Included
+		$bio_rank_start += $bio_offset;
+
+		// Crop String, then Camelcase It
+		return ucwords(substr($bio, $bio_rank_start, $bio_rank_end-$bio_rank_start-1));
 
 	}
 
