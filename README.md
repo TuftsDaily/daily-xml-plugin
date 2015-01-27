@@ -6,6 +6,7 @@ This is a plugin we (mostly Andrew, with contributions from Nitesh) created to e
 Here's how to push to the server.
 
 git remote add web ssh://tuftsdaily.com/the-plugin-directory
+
 git push web 
 
 Be sure to be up to date with github first!
