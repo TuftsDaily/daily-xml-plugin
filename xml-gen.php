@@ -130,6 +130,11 @@ class XMLGen {
 				$this->tags['rank'] = $this->get_author_rank($author_data->description);
 				$this->tags['bio'] = $author_data->description;
 			}
+
+			// Handle Empty Bio Case
+			if ($this->tags['bio'] == '') {
+				$this->tags['bio'] = "This author does not have a bio set on WordPress. REPLACE THIS BEFORE GOING TO PRINT";
+			}
 			
 		}
 
@@ -139,7 +144,7 @@ class XMLGen {
 	 * Given an author's bio, returns that author's rank.
 	 * 
 	 * Based on a standardized bio format of:
-	 * John Smith is a ____ at the Tufts Daily.
+	 * John Smith is a/an ____ at the Tufts Daily.
 	 * Returns placeholder text if the author does not have a bio
 	 *   or the bio does not follow this format.
 	 * 
@@ -197,7 +202,10 @@ class XMLGen {
 
 		// If It's a Column, Save the Column Title
 		if ($this->has_category($this->COLUMNS_CATEGORY_ID)) {
-			$this->tags['col-title'] = $this->get_cat_name_at_lvl(2);
+			$col_title = $this->get_cat_name_at_lvl(2);
+			// Handle Miscategorization
+			if (!$col_title) { $col_title = "COLUMN NAME HERE"; }
+			$this->tags['col-title'] = $col_title;
 		}
 
 		// Otherwise, Get Level 2 Category
