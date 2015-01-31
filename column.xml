@@ -1,6 +1,6 @@
 <thetuftsdaily>
 	<column>
-	<thumbnail>{col-title} | {author}</thumbnail>
+	<thumbnail>{author} | {col-title}</thumbnail>
 	<colhead>{headline}</colhead>
 	<body>{body}</body>
 	<bio>{bio}</bio>
