@@ -96,13 +96,16 @@ class XMLGen {
 				$shared_rank = null;
 				$shared_bio = '';
 
-				// Co-Atuhors Plus Plugin Provides Author List Formatted
+				// Co-Authors Plus Plugin Provides Author List Formatted
 				$this->tags['author'] = coauthors(null, null, null, null, false);
 
 				foreach (get_coauthors() as $author_data) {
 
 					// Ranks Must Match, or Be Edited Manually
-					$rank = $this->get_author_rank($author_data->description);
+					$rank = $this->get_author_rank($author_data->ID);
+
+					var_dump($shared_rank);
+					var_dump($rank);
 					
 					// If Null, This is First Author so Set Rank from That
 					if ($shared_rank == null) {
@@ -110,7 +113,7 @@ class XMLGen {
 
 					// If Current Author's Rank Doesn't Match Previous, Set to Placeholder
 					} else if ($shared_rank != $rank) {
-						$rank = "INSERT RANK HERE";
+						$shared_rank = "AUTHORS HAVE DIFFERENT RANKS";
 					}
 
 					// Merge Bios Together
@@ -150,28 +153,12 @@ class XMLGen {
 	 * 
 	 * @return string Author's rank text.
 	 */
-	private function get_author_rank($bio) {
+	private function get_author_rank($user_id) {
 
-		// Get Position of Rank Phrase
-		$bio_rank_start = strpos(strtoupper($bio), "IS A ");
-		$bio_offset = 5;
-		// Account for Alternative Indefinite Article
-		if ($bio_rank_start == false) { 
-			$bio_rank_start = strpos(strtoupper($bio), "IS AN "); 
-			$bio_offset = 6;
-		}
-		$bio_rank_end = strpos(strtoupper($bio), "AT THE TUFTS DAILY");
+		$rank = get_user_meta($user_id, 'daily-rank', true);
+		if (!$rank) { $rank = "RANK NOT SET ON WEB"; }
 
-		// If Cannot Find the Correct Phrase, Give Up
-		if ($bio_rank_start == false || $bio_rank_end == false) {
-			return "INSERT RANK HERE";
-		}
-
-		// We Don't Want the "is a" Phrase Included
-		$bio_rank_start += $bio_offset;
-
-		// Crop String, then Camelcase It
-		return ucwords(substr($bio, $bio_rank_start, $bio_rank_end-$bio_rank_start-1));
+		return $rank;
 
 	}
 
@@ -184,7 +171,7 @@ class XMLGen {
 
 		// Fill In Defaults For Required Fields
 		if (!$jumpword) { $jumpword = 'JUMPWORD'; }
-		if (!$conthead) { $conthead = 'CONTINUATION HEADLINE GOES HERE'; }
+		if (!$conthead) { $conthead = 'CONT HEADLINE GOES HERE'; }
 
 		$this->tags['jumpword'] = $jumpword;
 		$this->tags['conthead'] = $conthead;

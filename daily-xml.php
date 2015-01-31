@@ -42,3 +42,48 @@ function tdaily_export_html($single_template) {
 		return $single_template;
 	}
 }
+
+
+
+// Additional User Post Meta Fields
+add_action( 'show_user_profile', 'td_show_extra_profile_fields' );
+add_action( 'edit_user_profile', 'td_show_extra_profile_fields' );
+function td_show_extra_profile_fields( $user ) { ?>
+
+	<h3>Print Information</h3>
+
+	<table class="form-table">
+
+		<tr>
+			<th><label for="daily-rank">Rank</label></th>
+
+			<td>
+				<input type="text" name="daily-rank" id="daily-rank" value="<?php echo esc_attr( get_the_author_meta( 'daily-rank', $user->ID ) ); ?>" class="regular-text" /><br />
+				<span class="description">Something like "Executive News Editor", "Arts Editor", or "Assistant Features Editor".</span>
+			</td>
+		</tr>
+
+	</table>
+<?php }
+
+
+add_action( 'personal_options_update', 'td_save_extra_profile_fields' );
+add_action( 'edit_user_profile_update', 'td_save_extra_profile_fields' );
+function td_save_extra_profile_fields( $user_id ) {
+
+	if (!current_user_can('edit_user', $user_id)) {
+		return false;
+	}
+
+	update_user_meta( $user_id, 'daily-rank', $_POST['daily-rank'] );
+
+
+}
+
+
+// If User Does Not Have a Bio, Create One
+function td_autogen_bio($rank, $user_id) {
+
+	// TODO
+
+}
