@@ -67,16 +67,19 @@ function td_show_extra_profile_fields( $user ) { ?>
 <?php }
 
 
-add_action( 'personal_options_update', 'td_save_extra_profile_fields' );
-add_action( 'edit_user_profile_update', 'td_save_extra_profile_fields' );
+add_action( 'profile_update', 'td_save_extra_profile_fields' );
 function td_save_extra_profile_fields( $user_id ) {
 
 	if (!current_user_can('edit_user', $user_id)) {
+		die('bad permission');
 		return false;
 	}
 
-	update_user_meta( $user_id, 'daily-rank', $_POST['daily-rank'] );
+	$rank = $_POST['daily-rank'];
+	update_user_meta( $user_id, 'daily-rank', $rank);
 
+	if (!$rank) { return; }
+	td_autogen_bio($rank, $user_id);
 
 }
 
@@ -84,6 +87,26 @@ function td_save_extra_profile_fields( $user_id ) {
 // If User Does Not Have a Bio, Create One
 function td_autogen_bio($rank, $user_id) {
 
-	// TODO
+	$existing_bio = get_the_author_meta('description', $user_id);
+
+	if (!$existing_bio) {
+
+		// Choose the/a/an
+		$vowels = array('a', 'e', 'i', 'o', 'u');
+		if (strpos($rank, 'Executive') !== false) {
+			$article = 'the';
+		} else if (in_array(strtolower($rank[0]), $vowels)) {
+			$article = 'an';
+		} else {
+			$article = 'a';
+		}
+
+		$name = get_the_author_meta('display_name', $user_id);
+		
+		// Something Like: Andrew Stephens is a Layout Editor at the Tufts Daily.
+		$bio = $name.' is '.$article.' '.$rank.' at the Tufts Daily.';
+
+		update_user_meta($user_id, 'description', $bio);
+	}
 
 }
