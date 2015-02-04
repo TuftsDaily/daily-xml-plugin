@@ -104,9 +104,6 @@ class XMLGen {
 					// Ranks Must Match, or Be Edited Manually
 					$rank = $this->get_author_rank($author_data->ID);
 
-					var_dump($shared_rank);
-					var_dump($rank);
-					
 					// If Null, This is First Author so Set Rank from That
 					if ($shared_rank == null) {
 						$shared_rank = $rank;
